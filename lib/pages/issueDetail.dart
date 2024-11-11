@@ -49,7 +49,7 @@ class _IssueDetailState extends State<IssueDetail> {
   Future<List<CommentsModel>> fetchComments(issueID) async {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('accessToken');
-    final String commentBaseURL = 'http://15.207.244.117/issues/$issueID/comments/';
+    final String commentBaseURL = '$apiURL/issues/$issueID/comments/';
     final response = await http.get(Uri.parse(commentBaseURL),
     headers: {
       'Authorization' : 'Token $token'
@@ -140,6 +140,12 @@ class _IssueDetailState extends State<IssueDetail> {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     setState(() {
       userRole = prefs.getString('userRole');
+    });
+  }
+
+  void refreshComments() {
+    setState(() {
+      futureComments = fetchComments(widget.issue.id!);
     });
   }
 
@@ -246,13 +252,13 @@ class _IssueDetailState extends State<IssueDetail> {
                           TagsButton(
                             tagBoxColor: Colors.white30,
                             textColor: Colors.white,
-                            tags: 'S/w Ver : ${widget.issue.technology!}',
+                            tags: 'S/w Ver : ${widget.issue.softwareVersion!}',
                           ),
-                          // TagsButton(
-                          //   tagBoxColor: Colors.white30,
-                          //   textColor: Colors.white,
-                          //   tags: widget.issue.name!,
-                          // ),
+                          TagsButton(
+                            tagBoxColor: Colors.white30,
+                            textColor: Colors.white,
+                            tags: 'Technology : ${widget.issue.technology!}',
+                          ),
                         ],
                       ),
                       SizedBox(
@@ -298,7 +304,7 @@ class _IssueDetailState extends State<IssueDetail> {
                         style: TextStyle(
                             fontFamily: 'NokiaPureHeadline_Bd',
                             color: Colors.white,
-                            fontSize: 24,
+                            fontSize: 23,
                             fontWeight: FontWeight.bold
                         ),
                       ),
@@ -328,7 +334,7 @@ class _IssueDetailState extends State<IssueDetail> {
                         style:TextStyle(
                             fontFamily: 'NokiaPureHeadline_ULt',
                             color: Colors.white,
-                            fontSize: 20,
+                            fontSize: 18,
                             fontWeight: FontWeight.w200
                         ),
                       ),
@@ -339,7 +345,7 @@ class _IssueDetailState extends State<IssueDetail> {
                         padding: const EdgeInsets.only(bottom: 15),
                         child: Text('Issue Description :', style: GoogleFonts.poppins(
                             color: Colors.white,
-                            fontSize: 20,
+                            fontSize: 18,
                             fontWeight: FontWeight.w500
                         ),),
                       ),
@@ -375,7 +381,7 @@ class _IssueDetailState extends State<IssueDetail> {
                 ),
               ),
               Container(
-                padding: EdgeInsets.only(top: 20, bottom: 20),
+                padding: EdgeInsets.only(top: 5, bottom: 20),
                 margin: EdgeInsets.only(bottom: 0),
                 width: double.infinity,
                 decoration: BoxDecoration(
@@ -383,7 +389,13 @@ class _IssueDetailState extends State<IssueDetail> {
                   color: Colors.black54,
                 ),
                 child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    // IconButton(
+                    //     onPressed: (){
+                    //         refreshComments();
+                    //     },
+                    //     icon: Icon(Icons.refresh_rounded, color: Colors.white,)),
                     FutureBuilder<List<CommentsModel>>(
                       future: futureComments,
                       builder: (context, snapshot) {
@@ -417,8 +429,7 @@ class _IssueDetailState extends State<IssueDetail> {
                         }
                       },
                     ),
-                    (userRole == 'Global Manager' || userRole == 'Managers' || userRole == 'Regional Manager') ? Padding(
-                      padding: const EdgeInsets.only(top: 20),
+                    (userRole == 'Global Manager' || userRole == 'Managers' || userRole == 'Regional Manager') ? Center(
                       child: ElevatedButton(
                         onPressed: () {
                           showDialog(

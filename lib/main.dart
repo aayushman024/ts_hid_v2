@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:ts_hid/pages/allIssuesPage.dart';
 import 'package:ts_hid/pages/loginPage.dart';
-import 'package:ts_hid/pages/teamSelector.dart'; // Replace with the page after login
 
 void main() async{
   WidgetsFlutterBinding.ensureInitialized();
@@ -41,7 +40,7 @@ class _HIDState extends State<HID> {
                     CircularProgressIndicator(
                       backgroundColor: Colors.black12,
                       color: Colors.white60,
-                    ), // Show loading indicator while checking login status
+                    ),
               ),
             )
           : isLoggedIn
@@ -56,7 +55,7 @@ class _HIDState extends State<HID> {
 
     setState(() {
       isLoggedIn = loggedIn;
-      isLoading = false; // Remove the loading state after checking
+      isLoading = false;
     });
   }
 }

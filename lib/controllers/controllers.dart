@@ -1,3 +1,4 @@
+import 'package:action_slider/action_slider.dart';
 import 'package:flutter/material.dart';
 
 //login page controllers
@@ -18,6 +19,10 @@ TextEditingController ticketNumberController = TextEditingController();
 TextEditingController productTicketNumberController = TextEditingController();
 TextEditingController commentsController = TextEditingController();
 TextEditingController summaryController = TextEditingController();
+TextEditingController technologyController = TextEditingController();
+
+//action slider controller
+ActionSliderController markAsReadController = ActionSliderController();
 
 //search controller
 TextEditingController searchController = TextEditingController();

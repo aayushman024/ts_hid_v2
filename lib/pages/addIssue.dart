@@ -8,6 +8,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:ts_hid/components/textFields.dart';
 import 'package:ts_hid/globals/global_variables.dart';
 import 'package:ts_hid/pages/allIssuesPage.dart';
+import '../Models/profileModel.dart';
 import '../controllers/controllers.dart';
 import '../components/glassCards/addIssueCard.dart';
 
@@ -20,12 +21,12 @@ class _AddIssueState extends State<AddIssue> {
   @override
   void initState() {
     super.initState();
+    fetchProfile();
   }
 
   void resetTextField() {
     requesterNameController.clear();
     productNameController.clear();
-    regionController.clear();
     productFamilyController.clear();
     countryController.clear();
     softwareVersionController.clear();
@@ -34,11 +35,12 @@ class _AddIssueState extends State<AddIssue> {
     customerNameController.clear();
     productTicketNumberController.clear();
     ticketNumberController.clear();
+    summaryController.clear();
+
   }
 
   Future<void> _submitIssue() async {
     if (requesterNameController.text.isEmpty ||
-        regionController.text.isEmpty||
         productFamilyController.text.isEmpty ||
         productNameController.text.isEmpty ||
         countryController.text.isEmpty ||
@@ -47,6 +49,8 @@ class _AddIssueState extends State<AddIssue> {
         ticketNumberController.text.isEmpty ||
         softwareVersionController.text.isEmpty ||
         issueTitleController.text.isEmpty ||
+        selectedTechnology == null ||
+        selectedRegion == null ||
         issueDescriptionController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -65,26 +69,28 @@ class _AddIssueState extends State<AddIssue> {
     }
 
     final Map<String, dynamic> issueData = {
-      "region": regionController.text,
+      "region": selectedRegion,
       "country": countryController.text,
       "customer": customerNameController.text,
-      "technology": softwareVersionController.text,
+      "technology": selectedTechnology,
+      "software_version": softwareVersionController.text,
       "product": productNameController.text,
       "description": issueDescriptionController.text,
       "summary": summaryController.text,
-      "status": "Newly Registered",
+      "status": allStatus[selectedStatusIndex],
       "title": issueTitleController.text,
       "severity": severities[selectedSeverityIndex],
       "name": requesterNameController.text,
       "product_family": productFamilyController.text,
       "ticket": ticketNumberController.text,
-      "problem_ticket": productTicketNumberController.text
+      "problem_ticket": productTicketNumberController.text,
+      "was_reopened": false,
     };
 
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('accessToken');
     final response = await http.post(
-      Uri.parse('http://15.207.244.117/api/issues/'),
+      Uri.parse('$apiURL/api/issues/'),
       headers: {'Content-Type': 'application/json',
         'Authorization' : 'Token $token'},
       body: jsonEncode(issueData),
@@ -105,6 +111,9 @@ class _AddIssueState extends State<AddIssue> {
           )
       );
       resetTextField();
+     setState(() {
+       isButtonDisabled = false;
+     });
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => AllIssuesPage()),
@@ -122,6 +131,52 @@ class _AddIssueState extends State<AddIssue> {
               )
           )
       );
+    }
+  }
+
+  List<String> filteredCountries = [];
+  String? selectedCountry;
+  String? selectedTechnology;
+  String? selectedRegion;
+
+  void _filterCountries(String query) {
+    final filtered = countries.where((country) => country.toLowerCase().contains(query.toLowerCase())).toList();
+    setState(() {
+      filteredCountries = filtered;
+    });
+  }
+
+  late Future<ProfileModel> futureProfile;
+  final String profileBaseURL = 'http://15.207.244.117/api/profile/';
+
+  Future<ProfileModel> fetchProfile() async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('accessToken');
+    try {
+      final responseProfile = await http.get(Uri.parse(profileBaseURL), headers: {'Authorization': 'Token $token'});
+
+      if (responseProfile.statusCode == 200) {
+        Map<String, dynamic> jsonData = jsonDecode(responseProfile.body);
+        ProfileModel profileModel = ProfileModel.fromJson(jsonData);
+        return profileModel;
+      } else {
+        throw Exception('Failed to load details');
+      }
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  Future<void> importProfile() async {
+    try {
+      ProfileModel profile = await fetchProfile();
+      requesterNameController.text = profile.username ?? 'N/A';
+      setState(() {
+        selectedRegion = profile.region;
+        selectedTechnology = profile.technology;
+      });
+      countryController.text = profile.country ?? 'N/A';
+    } catch (e) {
     }
   }
 
@@ -156,6 +211,9 @@ class _AddIssueState extends State<AddIssue> {
                       children: [
                         IconButton(
                           onPressed: () {
+                            setState(() {
+                              isButtonDisabled = false;
+                            });
                             Navigator.pushReplacement(
                               context,
                               MaterialPageRoute(
@@ -236,6 +294,13 @@ class _AddIssueState extends State<AddIssue> {
                             ),
                           ],
                         ),
+                        TextButton(
+                            onPressed: importProfile,
+                            child: Text('Import from profile', style: GoogleFonts.poppins(
+                              color: Colors.blue,
+                              fontSize: 12
+                            ),),
+                        ),
                         Padding(
                           padding: const EdgeInsets.only(top: 30),
                           child: Text(
@@ -252,10 +317,109 @@ class _AddIssueState extends State<AddIssue> {
                           textInputType: TextInputType.name,
                           hintText: '  e.g., John Doe',
                         ),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Padding(
+                              padding: const EdgeInsets.only(top: 30, bottom: 10),
+                              child: Text(
+                                'Region:',
+                                style: GoogleFonts.poppins(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: 13,
+                                ),
+                              ),
+                            ),
+                            Padding(
+                              padding: const EdgeInsets.only(top: 30, bottom: 20, right: 50),
+                              child: Text(
+                                'Technology:',
+                                style: GoogleFonts.poppins(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: 13,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            DropdownButtonHideUnderline(
+                              child: DropdownButton<String>(
+                                  hint: Padding(
+                                    padding: const EdgeInsets.only(top: 10),
+                                    child: Container(
+                                      decoration: BoxDecoration(
+                                          color: Colors.black26,
+                                          borderRadius: BorderRadius.circular(10)
+                                      ),
+                                      child: Padding(
+                                        padding: const EdgeInsets.all(10),
+                                        child: Text(
+                                          ' e.g., APAC   ',
+                                          style: GoogleFonts.poppins(color: Colors.white, fontWeight: FontWeight.w400, fontSize: 14),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                  dropdownColor: Colors.black,
+                                  value: selectedRegion,
+                                  items: teams
+                                      .map((customer) => DropdownMenuItem(
+                                    value: customer,
+                                    child: Text(
+                                      customer,
+                                      style: GoogleFonts.poppins(color: Colors.white, fontSize: 15, fontWeight: FontWeight.w500),
+                                    ),
+                                  ))
+                                      .toList(),
+                                  onChanged: (String? newValue) {
+                                    setState(() {
+                                      selectedRegion = newValue;
+                                    });
+                                  }),
+                            ),
+                            DropdownButtonHideUnderline(
+                              child: DropdownButton<String>(
+                                  hint: Container(
+                                    decoration: BoxDecoration(
+                                        color: Colors.black26,
+                                        borderRadius: BorderRadius.circular(10)
+                                    ),
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(10),
+                                      child: Text(
+                                        ' e.g., Optics   ',
+                                        style: GoogleFonts.poppins(color: Colors.white, fontWeight: FontWeight.w400, fontSize: 14),
+                                      ),
+                                    ),
+                                  ),
+                                  dropdownColor: Colors.black,
+                                  value: selectedTechnology,
+                                  items: technology
+                                      .map((customer) => DropdownMenuItem(
+                                    value: customer,
+                                    child: Text(
+                                      customer,
+                                      style: GoogleFonts.poppins(color: Colors.white, fontSize: 15, fontWeight: FontWeight.w500),
+                                    ),
+                                  ))
+                                      .toList(),
+                                  onChanged: (String? newValue) {
+                                    setState(() {
+                                      selectedTechnology = newValue;
+                                    });
+                                  }),
+                            ),
+                          ],
+                        ),
                         Padding(
                           padding: const EdgeInsets.only(top: 30),
                           child: Text(
-                            'Region:',
+                            'Country:',
                             style: GoogleFonts.poppins(
                               color: Colors.white,
                               fontWeight: FontWeight.w600,
@@ -263,10 +427,45 @@ class _AddIssueState extends State<AddIssue> {
                             ),
                           ),
                         ),
-                        CustomTextField(
-                          controller: regionController,
-                          textInputType: TextInputType.name,
-                          hintText: '  e.g., APAC',
+                        Stack(
+                          children: [
+                            // Custom text field for input
+                            CustomTextField(
+                              controller: countryController,
+                              textInputType: TextInputType.name,
+                              hintText: '  e.g., India',
+                              onChanged: _filterCountries,
+                            ),
+                            if (filteredCountries.isNotEmpty)
+                              Padding(
+                                padding: const EdgeInsets.only(top: 70),
+                                child: Container(
+                                  color: Colors.black38,
+                                  child: ListView.builder(
+                                    shrinkWrap: true,
+                                    physics: BouncingScrollPhysics(),
+                                    itemCount: filteredCountries.length,
+                                    itemBuilder: (context, index) {
+                                      return ListTile(
+                                        dense: true,
+                                        enableFeedback: true,
+                                        title: Text(filteredCountries[index], style: GoogleFonts.poppins(
+                                            color: Colors.white,
+                                            fontSize: 14
+                                        ),),
+                                        onTap: () {
+                                          setState(() {
+                                            selectedCountry = filteredCountries[index];
+                                            countryController.text = selectedCountry ?? '';
+                                            filteredCountries = [];
+                                          });
+                                        },
+                                      );
+                                    },
+                                  ),
+                                ),
+                              ),
+                          ],
                         ),
                         Padding(
                           padding: const EdgeInsets.only(top: 30),
@@ -313,7 +512,7 @@ class _AddIssueState extends State<AddIssue> {
                         ),
                         CustomTextField(
                           controller: ticketNumberController,
-                          textInputType: TextInputType.number,
+                          textInputType: TextInputType.text,
                           hintText: '  e.g., 123456',
                         ),
                         Padding(
@@ -329,29 +528,13 @@ class _AddIssueState extends State<AddIssue> {
                         ),
                         CustomTextField(
                           controller: productTicketNumberController,
-                          textInputType: TextInputType.number,
+                          textInputType: TextInputType.name,
                           hintText: '  e.g., 123456',
                         ),
                         Padding(
                           padding: const EdgeInsets.only(top: 30),
                           child: Text(
-                            'Country:',
-                            style: GoogleFonts.poppins(
-                              color: Colors.white,
-                              fontWeight: FontWeight.w600,
-                              fontSize: 13,
-                            ),
-                          ),
-                        ),
-                        CustomTextField(
-                          controller: countryController,
-                          textInputType: TextInputType.name,
-                          hintText: '  e.g., India',
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.only(top: 30),
-                          child: Text(
-                            'Customer Name:',
+                            'Customer:',
                             style: GoogleFonts.poppins(
                               color: Colors.white,
                               fontWeight: FontWeight.w600,
@@ -431,22 +614,27 @@ class _AddIssueState extends State<AddIssue> {
                           child: Padding(
                             padding: const EdgeInsets.only(top: 50),
                             child: ElevatedButton(
-                              onPressed: _submitIssue,
+                              onPressed: isButtonDisabled ? null : () {
+                                _submitIssue();
+                                setState(() {
+                                  isButtonDisabled = true;
+                                });
+                              },
                               style: ButtonStyle(
                                 backgroundColor: WidgetStateProperty.all(
-                                    Color(0xffB1DEFF)),
+                                    isButtonDisabled ? Colors.black54 : Color(0xffB1DEFF)),
                                 shape: WidgetStateProperty.all(
                                     RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(15),
                                 )),
                                 padding: WidgetStateProperty.all(
-                                    EdgeInsets.fromLTRB(100, 14, 100, 14)),
+                                    EdgeInsets.fromLTRB(80, 14, 80, 14)),
                               ),
                               child: Text(
                                 'Post Issue',
                                 style: GoogleFonts.poppins(
                                   color: Colors.black,
-                                  fontSize: 16,
+                                  fontSize: 15,
                                   fontWeight: FontWeight.w600,
                                 ),
                               ),

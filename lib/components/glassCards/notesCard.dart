@@ -1,4 +1,4 @@
-// ignore_for_file: prefer_const_literals_to_create_immutables
+// ignore_for_file: prefer_const_literals_to_create_immutables, prefer_const_constructors
 
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -177,14 +177,14 @@ class _NotesCardState extends State<NotesCard> {
                         fontSize: 12,
                         fontWeight: FontWeight.w500),
                   ),
-                  if (widget.wasReopened) // Display '*' only if wasReopened is true
+                  if (widget.wasReopened)
                     Text(
-                      ' *',
+                      '*',
                       style: TextStyle(color: Colors.white),
                     ),
                   SizedBox(width: MediaQuery.of(context).size.width*0.05,)
                 ],
-              )
+              ),
             ],
           ),
         ),

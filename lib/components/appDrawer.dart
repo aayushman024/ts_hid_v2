@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:ts_hid/pages/addressedIssues.dart';
 import 'package:ts_hid/pages/allIssuesPage.dart';
+import 'package:ts_hid/pages/contactUs.dart';
 import 'package:ts_hid/pages/loginPage.dart';
 import 'package:ts_hid/pages/profile.dart';
 import 'package:ts_hid/pages/teamSelector.dart';
@@ -63,6 +64,7 @@ class _CustomAppDrawerState extends State<CustomAppDrawer> {
             // ),
             ListTile(
               onTap: () {
+                Navigator.of(context).pop();
                 Navigator.push(context,
                     MaterialPageRoute(builder: (context) => const AddressedIssues()));
               },
@@ -85,8 +87,24 @@ class _CustomAppDrawerState extends State<CustomAppDrawer> {
                 style: GoogleFonts.poppins(color: Colors.white),
               ),
               onTap: () {
-                Navigator.pushReplacement(context, MaterialPageRoute(builder: (context)=> ProfilePage()));
+                Navigator.of(context).pop();
+                Navigator.push(context, MaterialPageRoute(builder: (context)=> ProfilePage()));
               },
+            ),
+            ListTile(
+              onTap: () {
+                Navigator.of(context).pop();
+                Navigator.push(context,
+                    MaterialPageRoute(builder: (context) => ContactUs()));
+              },
+              leading: const Icon(
+                Icons.call,
+                color: Colors.white,
+              ),
+              title: Text(
+                'C O N T A C T  U S',
+                style: GoogleFonts.poppins(color: Colors.white),
+              ),
             ),
             SizedBox(
               height: screenHeight * 0.4,

@@ -4,10 +4,12 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:lottie/lottie.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:ts_hid/Models/profileModel.dart';
 import 'package:ts_hid/components/glassCards/glassCard.dart';
 import 'package:ts_hid/controllers/controllers.dart';
+import 'package:ts_hid/globals/global_variables.dart';
 import '../components/appDrawer.dart';
 import 'loginPage.dart';
 import 'package:http/http.dart' as http;
@@ -34,6 +36,7 @@ class _ProfilePageState extends State<ProfilePage> {
     await prefs.remove('accessToken');
     await prefs.remove('isLoggedIn');
     await prefs.remove('userRole');
+    await prefs.remove('notificationClickTime');
 
     Navigator.pushAndRemoveUntil(
       context,
@@ -42,7 +45,7 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
-  final String profileBaseURL = 'http://15.207.244.117/api/profile/';
+  final String profileBaseURL = '$apiURL/api/profile/';
 
   Future<ProfileModel> fetchProfile() async {
     final prefs = await SharedPreferences.getInstance();
@@ -69,17 +72,28 @@ class _ProfilePageState extends State<ProfilePage> {
 
     return Scaffold(
         appBar: AppBar(
+          leading: IconButton(
+              onPressed: (){
+                Navigator.of(context).pop();
+              },
+              icon : Icon(Icons.arrow_back_ios, color: Colors.white,)),
           elevation: 0,
           iconTheme: IconThemeData(color: Colors.white),
           actions: [
             Padding(
               padding: const EdgeInsets.only(right: 15),
-              child: Image.asset('assets/logo.png', height: screenHeight * 0.015),
+              child: TextButton(
+                  onPressed: (){
+                    logout(context);
+                  },
+                  child: Text('LOGOUT', style: GoogleFonts.poppins(
+                    color: Colors.red
+                  ),)),
             ),
           ],
           backgroundColor: Colors.black,
         ),
-        drawer: CustomAppDrawer(),
+        //drawer: CustomAppDrawer(),
         body: Container(
             height: double.infinity,
             width: double.infinity,
@@ -101,11 +115,42 @@ class _ProfilePageState extends State<ProfilePage> {
                       return Center(child: CircularProgressIndicator());
                     } else if (snapshot.hasError) {
                       return Center(
-                        child: Text(
-                          'Error loading profile data!',
-                          style: TextStyle(color: Colors.white),
-                        ),
-                      );
+                          child: Padding(
+                            padding: const EdgeInsets.all(30),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Center(
+                                  child: Opacity(
+                                    opacity: 0.9,
+                                    child: SizedBox(
+                                      height: screenHeight * 0.4,
+                                      width: screenWidth * 0.6,
+                                      child: Lottie.asset('assets/serverAnimation.json'),
+                                    ),
+                                  ),
+                                ),
+                                Text(
+                                  'Uh Oh!',
+                                  style: GoogleFonts.poppins(color: Colors.white30, fontSize: 30, fontWeight: FontWeight.w700),
+                                ),
+                                SizedBox(
+                                  height: screenHeight * 0.01,
+                                ),
+                                Text(
+                                  'Cannot connect to the server',
+                                  style: GoogleFonts.poppins(color: Colors.white30, fontSize: 20, fontWeight: FontWeight.w700),
+                                ),
+                                SizedBox(
+                                  height: screenHeight * 0.025,
+                                ),
+                                Text(
+                                  '- Check you internet connectivity.\n- Try logging out and logging back in.',
+                                  style: GoogleFonts.poppins(color: Colors.white30, fontSize: 14, fontWeight: FontWeight.w500),
+                                ),
+                              ],
+                            ),
+                          ));
                     } else if (snapshot.hasData) {
                       final profile = snapshot.data!;
                       return Column(
@@ -178,7 +223,7 @@ class _ProfilePageState extends State<ProfilePage> {
                                     ),
                                     trailing: Text(
                                       profile.email ?? 'N/A',
-                                      style: GoogleFonts.poppins(color: Colors.white60, fontSize: 15, fontWeight: FontWeight.w500),
+                                      style: GoogleFonts.poppins(color: Colors.white60, fontSize: 12, fontWeight: FontWeight.w500),
                                     ),
                                   ),
                                 ),
@@ -305,7 +350,7 @@ class _ProfilePageState extends State<ProfilePage> {
                                             minTileHeight: 0,
                                             leading: Text('Add Issues :     ', style: GoogleFonts.poppins(color: Colors.white, fontWeight: FontWeight.w500, fontSize: 11)),
                                             horizontalTitleGap: 0,
-                                            title: (profile.role == 'Global Manager' || profile.role == 'Regional Manager' || profile.role == 'Managers')
+                                            title: (profile.role == 'Global Manager' || profile.role == 'Regional Manager' || profile.role == 'Managers' || profile.role == 'CTA')
                                                 ? Icon(
                                                     Icons.check_circle,
                                                     color: Colors.green,
@@ -372,24 +417,24 @@ class _ProfilePageState extends State<ProfilePage> {
                                   )),
                                 )),
                           ),
-                          Padding(
-                            padding: const EdgeInsets.only(top: 30, bottom: 30),
-                            child: GestureDetector(
-                              onTap: () {
-                                logout(context);
-                              },
-                              child: GlassCard(
-                                width: screenWidth * 0.35,
-                                height: screenHeight * 0.07,
-                                child: Center(
-                                  child: Text(
-                                    'LOGOUT',
-                                    style: GoogleFonts.poppins(color: Colors.red, fontWeight: FontWeight.w700, fontSize: 18),
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
+                          // Padding(
+                          //   padding: const EdgeInsets.only(top: 30, bottom: 30),
+                          //   child: GestureDetector(
+                          //     onTap: () {
+                          //       logout(context);
+                          //     },
+                          //     child: GlassCard(
+                          //       width: screenWidth * 0.35,
+                          //       height: screenHeight * 0.07,
+                          //       child: Center(
+                          //         child: Text(
+                          //           'LOGOUT',
+                          //           style: GoogleFonts.poppins(color: Colors.red, fontWeight: FontWeight.w700, fontSize: 18),
+                          //         ),
+                          //       ),
+                          //     ),
+                          //   ),
+                          // ),
                         ],
                       );
                     } else {

@@ -9,6 +9,8 @@ class CustomTextField extends StatefulWidget {
   final maxLines;
   final maxLength;
   final textInputType;
+  final autofill;
+  final onChanged;
 
   const CustomTextField({super.key,
     required this.controller,
@@ -16,6 +18,8 @@ class CustomTextField extends StatefulWidget {
     this.maxLines,
     this.maxLength,
     this.textInputType,
+    this.autofill,
+    this.onChanged
   });
 
   @override
@@ -28,10 +32,12 @@ class _CustomTextFieldState extends State<CustomTextField> {
     return Padding(
       padding: const EdgeInsets.only(top: 10),
       child: TextField(
+        onChanged: widget.onChanged,
         controller: widget.controller,
           minLines: 1,
           keyboardType: widget.textInputType,
           maxLines: widget.maxLines,
+          autofillHints: widget.autofill,
           maxLength: widget.maxLength,
           style: GoogleFonts.poppins(color: Colors.white, fontWeight: FontWeight.w500),
       decoration: InputDecoration(

@@ -24,7 +24,7 @@ class AddressedIssues extends StatefulWidget {
 }
 
 class _AddressedIssuesState extends State<AddressedIssues> {
-  final String issueBaseURL = 'http://15.207.244.117/api/addressed-issues/';
+  final String issueBaseURL = '$apiURL/api/addressed-issues/';
 
   late Future<List<GetAllIssues>> futureIssues;
 
@@ -71,6 +71,11 @@ class _AddressedIssuesState extends State<AddressedIssues> {
 
     return Scaffold(
         appBar: AppBar(
+          leading: IconButton(
+            onPressed: (){
+              Navigator.of(context).pop();
+            },
+            icon : Icon(Icons.arrow_back_ios, color: Colors.white,)),
           elevation: 0,
           iconTheme: IconThemeData(color: Colors.white),
           backgroundColor: Colors.black,
@@ -99,7 +104,7 @@ class _AddressedIssuesState extends State<AddressedIssues> {
             ),
           ],
         ),
-        drawer: CustomAppDrawer(),
+        //drawer: CustomAppDrawer(),
         body: Container(
           height: double.infinity,
           width: double.infinity,

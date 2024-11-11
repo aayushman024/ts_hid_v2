@@ -14,7 +14,7 @@ class Comment extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(top: 10, bottom: 5),
+      padding: const EdgeInsets.only(top: 10),
       child: Container(
         margin: EdgeInsets.only(left: 20, right: 20),
         decoration: BoxDecoration(
