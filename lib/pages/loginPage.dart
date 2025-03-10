@@ -225,34 +225,7 @@ class LoginPageState extends State<LoginPage> {
                         if (loginSuccessful) {
                           passwordController.clear();
 
-
-                          // final SharedPreferences prefs =
-                          //     await SharedPreferences.getInstance();
-                          // final String? role = prefs.getString('userRole');
-
-                          // ignore: prefer_const_constructors
                           Navigator.pushReplacement(context, CupertinoPageRoute(builder: (context)=> AllIssuesPage()));
-                          // if (role == 'admin') {
-                          //   Navigator.pushReplacement(
-                          //       context,
-                          //       CupertinoPageRoute(
-                          //           builder: (context) => TeamSelector()));
-                          // } else if (role == 'manager') {
-                          //   Navigator.pushReplacement(
-                          //       context,
-                          //       CupertinoPageRoute(
-                          //           builder: (context) => TeamSelector()));
-                          // } else if (role == 'contributor') {
-                          //   Navigator.pushReplacement(
-                          //       context,
-                          //       CupertinoPageRoute(
-                          //           builder: (context) => TeamSelector()));
-                          // } else {
-                          //   Navigator.pushReplacement(
-                          //       context,
-                          //       CupertinoPageRoute(
-                          //           builder: (context) => TeamSelector()));
-                          // }
                         } else {
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
